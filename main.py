@@ -11,7 +11,8 @@ def main():
     print("Building features...")
     feat = build_features(raw)
 
-    print(f"\n=== Walk-forward backtest ({len(feat)} trading days) ===")
+    n_labeled = feat["target_ret_next"].notna().sum()
+    print(f"\n=== Walk-forward backtest ({n_labeled} labeled trading days) ===")
     walk_forward_eval(feat)
 
     print("\n=== Next trading day prediction ===")

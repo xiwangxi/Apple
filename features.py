@@ -53,7 +53,11 @@ def build_features(df: pd.DataFrame) -> pd.DataFrame:
     out["target_ret_next"] = ret1.shift(-1)
     out["target_up_next"] = (out["target_ret_next"] > 0).astype(int)
 
-    out = out.dropna()
+    # Drop rows with NaN features (rolling-window warmup period), but keep the
+    # final row even though its target is unknown -- that's the row we need
+    # for actually predicting tomorrow.
+    feature_cols = [c for c in out.columns if not c.startswith("target_")]
+    out = out.dropna(subset=feature_cols)
     return out
 
 

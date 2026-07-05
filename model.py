@@ -21,9 +21,10 @@ FEATURE_COLS = [
 
 
 def walk_forward_eval(feat: pd.DataFrame, n_splits: int = 5) -> None:
-    X = feat[FEATURE_COLS].values
-    y_cls = feat["target_up_next"].values
-    y_reg = feat["target_ret_next"].values
+    labeled = feat.dropna(subset=["target_ret_next", "target_up_next"])
+    X = labeled[FEATURE_COLS].values
+    y_cls = labeled["target_up_next"].values
+    y_reg = labeled["target_ret_next"].values
 
     tscv = TimeSeriesSplit(n_splits=n_splits)
     accs, baseline_accs, maes = [], [], []
@@ -58,10 +59,12 @@ def walk_forward_eval(feat: pd.DataFrame, n_splits: int = 5) -> None:
 
 
 def predict_next_day(feat: pd.DataFrame) -> dict:
-    """Train on all available history, predict the next trading day."""
-    X = feat[FEATURE_COLS].values
-    y_cls = feat["target_up_next"].values
-    y_reg = feat["target_ret_next"].values
+    """Train on all available labeled history, predict the next trading day
+    from the most recent row (whose own target is still unknown)."""
+    labeled = feat.dropna(subset=["target_ret_next", "target_up_next"])
+    X = labeled[FEATURE_COLS].values
+    y_cls = labeled["target_up_next"].values
+    y_reg = labeled["target_ret_next"].values
 
     clf = GradientBoostingClassifier(random_state=42).fit(X, y_cls)
     reg = GradientBoostingRegressor(random_state=42).fit(X, y_reg)
